@@ -1,1 +1,1 @@
-# Corona.inventario
+# Corona.inventarios
