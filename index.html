@@ -520,69 +520,98 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
 /* Ocultar pantallas hasta que JS decida cuál mostrar */
 #screen-setup, #screen-login { display: none !important; }
 #screen-setup.active, #screen-login.active { display: flex !important; }
-  /* ── DESARROLLADOR CREDITS ── */
+/* ── DESARROLLADOR CREDITS MEJORADO ── */
 .dev-credits {
-  margin-top: 18px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  position: relative;
 }
 
 .dev-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--sf2);
-  border: 1px solid var(--bd);
-  border-radius: 50px;
-  padding: 8px 14px;
-  transition: all 0.3s ease;
+  gap: 14px;
+  background: linear-gradient(135deg, var(--sf2), rgba(0, 229, 160, 0.05));
+  border: 1px solid rgba(0, 229, 160, 0.15);
+  border-radius: 16px;
+  padding: 12px 18px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 320px;
+}
+
+.dev-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 160, 0.5), transparent);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  20%, 100% { transform: translateX(100%); }
 }
 
 .dev-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 229, 160, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 229, 160, 0.2);
   border-color: rgba(0, 229, 160, 0.3);
 }
 
-.dev-icon {
-  font-size: 20px;
+.dev-avatar {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.dev-avatar-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--ac), var(--ac2));
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.dev-avatar-icon {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--fh);
+  font-size: 18px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .dev-info {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 2px;
 }
 
 .dev-label {
-  font-size: 10px;
-  color: var(--tx3);
+  font-size: 9px;
+  color: var(--ac);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 2px;
-}
-
-.dev-name {
-  font-family: var(--fh);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--tx);
-  letter-spacing: -0.3px;
-}
-
-.dev-version {
-  font-size: 11px;
-  color: var(--tx3);
-  background: var(--sf2);
-  border-radius: 20px;
-  padding: 3px 10px;
-  font-weight: 600;
-}
+  letter
 </style>
 
 </head>
@@ -596,13 +625,43 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
     <div class="logo-tg">Primera configuración</div>
     <div class="dev-credits">
   <div class="dev-badge">
-    <div class="dev-icon">👨‍💻</div>
+    <div class="dev-avatar">
+      <div class="dev-avatar-bg"></div>
+      <div class="dev-avatar-icon">JP</div>
+    </div>
     <div class="dev-info">
-      <div class="dev-label">Desarrollado por</div>
+      <div class="dev-label">CREADOR Y DESARROLLADOR</div>
       <div class="dev-name">Jose Pérez</div>
+      <div class="dev-title">Full Stack Developer</div>
+    </div>
+    <div class="dev-status">
+      <div class="dev-status-dot"></div>
+      <span>Active</span>
     </div>
   </div>
-  <div class="dev-version">v3.0</div>
+  <div class="dev-signature">
+    <div class="dev-signature-line"></div>
+    <span>Crafted with passion by Jose Pérez</span>
+    <div class="dev-signature-line"></div>
+  </div>
+  <div class="dev-tech-stack">
+    <div class="tech-item">
+      <div class="tech-icon">🔥</div>
+      <span>HTML5</span>
+    </div>
+    <div class="tech-item">
+      <div class="tech-icon">🎨</div>
+      <span>CSS3</span>
+    </div>
+    <div class="tech-item">
+      <div class="tech-icon">⚡</div>
+      <span>JavaScript</span>
+    </div>
+    <div class="tech-item">
+      <div class="tech-icon">☁️</div>
+      <span>Firebase</span>
+    </div>
+  </div>
 </div>
   </div>
   <div class="card">
@@ -622,13 +681,43 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
     <div class="logo-tg">Inventario inteligente con validación de stock</div>
     <div class="dev-credits">
   <div class="dev-badge">
-    <div class="dev-icon">👨‍💻</div>
+    <div class="dev-avatar">
+      <div class="dev-avatar-bg"></div>
+      <div class="dev-avatar-icon">JP</div>
+    </div>
     <div class="dev-info">
-      <div class="dev-label">Desarrollado por</div>
+      <div class="dev-label">CREADOR Y DESARROLLADOR</div>
       <div class="dev-name">Jose Pérez</div>
+      <div class="dev-title">Full Stack Developer</div>
+    </div>
+    <div class="dev-status">
+      <div class="dev-status-dot"></div>
+      <span>Active</span>
     </div>
   </div>
-  <div class="dev-version">v3.0</div>
+  <div class="dev-signature">
+    <div class="dev-signature-line"></div>
+    <span>Crafted with passion by Jose Pérez</span>
+    <div class="dev-signature-line"></div>
+  </div>
+  <div class="dev-tech-stack">
+    <div class="tech-item">
+      <div class="tech-icon">🔥</div>
+      <span>HTML5</span>
+    </div>
+    <div class="tech-item">
+      <div class="tech-icon">🎨</div>
+      <span>CSS3</span>
+    </div>
+    <div class="tech-item">
+      <div class="tech-icon">⚡</div>
+      <span>JavaScript</span>
+    </div>
+    <div class="tech-item">
+      <div class="tech-icon">☁️</div>
+      <span>Firebase</span>
+    </div>
+  </div>
 </div>
   </div>
   <div class="card">
