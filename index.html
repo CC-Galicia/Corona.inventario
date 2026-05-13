@@ -520,7 +520,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
 /* Ocultar pantallas hasta que JS decida cuál mostrar */
 #screen-setup, #screen-login { display: none !important; }
 #screen-setup.active, #screen-login.active { display: flex !important; }
-/* ── DESARROLLADOR CREDITS MEJORADO ── */
+/* ── DESARROLLADOR CREDITS ── */
 .dev-credits {
   margin-top: 24px;
   display: flex;
@@ -611,7 +611,75 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
   font-size: 9px;
   color: var(--ac);
   text-transform: uppercase;
-  letter
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.dev-name {
+  font-family: var(--fh);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--tx);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.dev-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dev-status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ac);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--ac);
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.dev-signature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.dev-signature-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bd), transparent);
+}
+
+.dev-signature span {
+  font-size: 10px;
+  color: var(--tx3);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* Estilo especial para modo claro */
+body.light-mode .dev-badge {
+  background: linear-gradient(135deg, var(--sf2), rgba(0, 148, 255, 0.05));
+  border-color: rgba(0, 148, 255, 0.15);
+}
+
+body.light-mode .dev-badge:hover {
+  box-shadow: 0 10px 25px rgba(0, 148, 255, 0.2);
+  border-color: rgba(0, 148, 255, 0.3);
+}
+
+body.light-mode .dev-label {
+  color: var(--ac2);
+}
 </style>
 
 </head>
@@ -629,38 +697,24 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
       <div class="dev-avatar-bg"></div>
       <div class="dev-avatar-icon">JP</div>
     </div>
+<div class="dev-credits">
+  <div class="dev-badge">
+    <div class="dev-avatar">
+      <div class="dev-avatar-bg"></div>
+      <div class="dev-avatar-icon">JP</div>
+    </div>
     <div class="dev-info">
-      <div class="dev-label">CREADOR Y DESARROLLADOR</div>
+      <div class="dev-label">DESARROLLADO POR</div>
       <div class="dev-name">Jose Pérez</div>
-      <div class="dev-title">Full Stack Developer</div>
     </div>
     <div class="dev-status">
       <div class="dev-status-dot"></div>
-      <span>Active</span>
     </div>
   </div>
   <div class="dev-signature">
     <div class="dev-signature-line"></div>
-    <span>Crafted with passion by Jose Pérez</span>
+    <span>Crafted with passion</span>
     <div class="dev-signature-line"></div>
-  </div>
-  <div class="dev-tech-stack">
-    <div class="tech-item">
-      <div class="tech-icon">🔥</div>
-      <span>HTML5</span>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">🎨</div>
-      <span>CSS3</span>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">⚡</div>
-      <span>JavaScript</span>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">☁️</div>
-      <span>Firebase</span>
-    </div>
   </div>
 </div>
   </div>
@@ -685,12 +739,26 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
       <div class="dev-avatar-bg"></div>
       <div class="dev-avatar-icon">JP</div>
     </div>
+    <div class="dev-credits">
+  <div class="dev-badge">
+    <div class="dev-avatar">
+      <div class="dev-avatar-bg"></div>
+      <div class="dev-avatar-icon">JP</div>
+    </div>
     <div class="dev-info">
-      <div class="dev-label">CREADOR Y DESARROLLADOR</div>
+      <div class="dev-label">DESARROLLADO POR</div>
       <div class="dev-name">Jose Pérez</div>
     </div>
+    <div class="dev-status">
+      <div class="dev-status-dot"></div>
+    </div>
   </div>
+  <div class="dev-signature">
+    <div class="dev-signature-line"></div>
+    <span>Crafted with passion</span>
+    <div class="dev-signature-line"></div>
   </div>
+</div>
   <div class="card">
     <div id="login-tabs" style="display:flex;gap:8px;margin-bottom:18px;">
       <button class="btn bp sm" id="tab-op" onclick="setLoginTab('op')" style="flex:1;">👷 Operador</button>
