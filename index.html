@@ -520,7 +520,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
 /* Ocultar pantallas hasta que JS decida cuál mostrar */
 #screen-setup, #screen-login { display: none !important; }
 #screen-setup.active, #screen-login.active { display: flex !important; }
-  /* ── DESARROLLADOR CREDITS ── */
+/* ── DESARROLLADOR CREDITS ── */
 .dev-credits {
   margin-top: 24px;
   display: flex;
@@ -600,7 +600,22 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.dev-info
+.dev-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dev-label {
+  font-size: 8px;
+  color: var(--ac);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  opacity: 0.9;
+  position: relative;
+  display: inline-block;
 </style>
 
 </head>
@@ -619,17 +634,24 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
       <div class="dev-avatar-icon">JP</div>
     </div>
     <div class="dev-info">
-      <div class="dev-label">DESARROLLADO POR</div>
+      <div class="dev-credits">
+  <div class="dev-badge">
+    <div class="dev-avatar">
+      <div class="dev-avatar-bg"></div>
+      <div class="dev-avatar-icon">JP</div>
+    </div>
+    <div class="dev-info">
+      <div class="dev-label">CREADO Y DESARROLLADO POR</div>
       <div class="dev-name">Jose Pérez</div>
+      <div class="dev-signature">
+        <div class="dev-signature-line"></div>
+        <span>Crafted with passion</span>
+        <div class="dev-signature-line"></div>
+      </div>
     </div>
     <div class="dev-status">
       <div class="dev-status-dot"></div>
     </div>
-  </div>
-  <div class="dev-signature">
-    <div class="dev-signature-line"></div>
-    <span>Crafted with passion</span>
-    <div class="dev-signature-line"></div>
   </div>
 </div>
   </div>
@@ -655,17 +677,17 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
       <div class="dev-avatar-icon">JP</div>
     </div>
     <div class="dev-info">
-      <div class="dev-label">DESARROLLADO POR</div>
+      <div class="dev-label">CREADO Y DESARROLLADO POR</div>
       <div class="dev-name">Jose Pérez</div>
+      <div class="dev-signature">
+        <div class="dev-signature-line"></div>
+        <span>Crafted with passion</span>
+        <div class="dev-signature-line"></div>
+      </div>
     </div>
     <div class="dev-status">
       <div class="dev-status-dot"></div>
     </div>
-  </div>
-  <div class="dev-signature">
-    <div class="dev-signature-line"></div>
-    <span>Crafted with passion</span>
-    <div class="dev-signature-line"></div>
   </div>
 </div>
   </div>
