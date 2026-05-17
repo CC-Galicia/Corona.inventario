@@ -49,6 +49,33 @@ body.light-mode{
   --bd:rgba(0,0,0,0.10);
   --sh:0 4px 20px rgba(0,0,0,.10);
 }
+  /* ========================================================================
+          NUEVOS ESTILOS PARA CORREGIR LA IMPRESIÓN Y GENERACIÓN DE PDF
+    ======================================================================== */
+        @media print {
+            body {
+                background-color: transparent;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                padding: 15mm 20mm;
+                page-break-after: always;
+                width: 210mm;
+                min-height: 297mm;
+            }
+            .no-print {
+                display: none !important;
+            }
+            /* Forzar el renderizado de fondos de color en todos los elementos */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+        }
 /* Header, navbar y overrides en modo claro */
 body.light-mode,html:has(body.light-mode){background:#f0f4f8;}
 body.light-mode .tb{background:rgba(240,244,248,.96);}
