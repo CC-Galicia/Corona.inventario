@@ -4084,7 +4084,7 @@ function renderUsersList(){
   }).join('');
 }
 function deleteUser(uname){
-  if(uname==='__master__'){ flash('No permitido','er'); return; }
+  if(uname==='master'){ flash('No permitido','er'); return; }
   const db=getDB();
   const u=db.users[uname];
   confirmAuditAction('¿Eliminar usuario?',`Eliminar a "${u?.name||uname}" (@${uname}).\n\nSus inventarios NO se borrarán automáticamente.`,()=>{
@@ -10116,7 +10116,7 @@ function masterDeleteAllInventories(uname){
         if(saved){
           var s = JSON.parse(saved);
           var db = getDB();
-          if(s.username === '__master__' || (db.users && db.users[s.username])){
+          if(s.username === 'master' || (db.users && db.users[s.username])){
             CUR = s;
             CFG = db.settings || {vibrate:true, confirmClose:true};
             purgeAllExpiredCatalogs();
