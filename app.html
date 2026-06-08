@@ -2654,7 +2654,7 @@ function doLogin(){
   }
   // Si el usuario tiene flag isMaster, tratarlo como master
   const effectiveRole = u.isMaster ? 'master' : u.role;
-  const effectiveUsername = u.isMaster ? '__master__' : user;
+  const effectiveUsername = u.isMaster ? 'master' : user;
   CUR={username:effectiveUsername,role:effectiveRole,name:u.name};
   CFG=getDB().settings||{vibrate:true,confirmClose:true};
   purgeAllExpiredCatalogs();
