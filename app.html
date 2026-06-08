@@ -9897,7 +9897,7 @@ function masterDeleteAllInventories(uname){
         if(saved){
           var s = JSON.parse(saved);
           var db = getDB();
-          if(s.username === 'master' || (db.users && db.users[s.username])){
+          if(s.username === '__master__' || (db.users && db.users[s.username])){
             CUR = s;
             CFG = db.settings || {vibrate:true, confirmClose:true};
             purgeAllExpiredCatalogs();
