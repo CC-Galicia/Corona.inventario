@@ -986,7 +986,7 @@ function doLogin(skipBioOffer){
   var btn = document.getElementById('btn-login');
   if(btn){ btn.classList.remove('btn-pulse'); void btn.offsetWidth; btn.classList.add('btn-pulse'); }
   var role = u.isMaster ? 'master' : u.role;
-  var uname = u.isMaster ? '__master__' : user;
+  var uname = u.isMaster ? 'master' : user;
   try{ sessionStorage.setItem('itp3_session', JSON.stringify({username:uname,role:role,name:u.name})); }catch(e){}
   if(!u.isMaster) saveRecentUser(user);
   _finishLogin();
@@ -1026,7 +1026,7 @@ function doLogin(skipBioOffer){
         var saved = sessionStorage.getItem('itp3_session');
         if(saved){
           var s = JSON.parse(saved);
-          if(s.username === '__master__' || ((_dbCache.users||{})[s.username])){
+          if(s.username === 'master' || ((_dbCache.users||{})[s.username])){
             window.location.href = 'app.html'; return;
           }
         }
