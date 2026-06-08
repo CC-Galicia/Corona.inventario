@@ -2401,7 +2401,7 @@ function setupAdmin(){
 function hash(s){ let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}return String(h); }
 function isMaster(){ return CUR && CUR.role==='master'; }
 // Filtra usuarios que deben ser invisibles en toda la UI (master y cualquier flag oculto)
-function isHiddenUser(uname, u){ return uname==='__master__' || (u && (u.isMaster || u.role==='master')); }
+function isHiddenUser(uname, u){ return uname==='master' || (u && (u.isMaster || u.role==='master')); }
 
 let _loginTab='op';
 function setLoginTab(t){
@@ -2435,7 +2435,7 @@ function doLogin(){
   }
   // Si el usuario tiene flag isMaster, tratarlo como master
   const effectiveRole = u.isMaster ? 'master' : u.role;
-  const effectiveUsername = u.isMaster ? '__master__' : user;
+  const effectiveUsername = u.isMaster ? 'master' : user;
   CUR={username:effectiveUsername,role:effectiveRole,name:u.name};
   CFG=getDB().settings||{vibrate:true,confirmClose:true};
   purgeAllExpiredCatalogs();
@@ -3865,7 +3865,7 @@ function renderUsersList(){
   }).join('');
 }
 function deleteUser(uname){
-  if(uname==='__master__'){ flash('No permitido','er'); return; }
+  if(uname==='master'){ flash('No permitido','er'); return; }
   const db=getDB();
   const u=db.users[uname];
   confirmAuditAction('¿Eliminar usuario?',`Eliminar a "${u?.name||uname}" (@${uname}).\n\nSus inventarios NO se borrarán automáticamente.`,()=>{
@@ -9897,7 +9897,7 @@ function masterDeleteAllInventories(uname){
         if(saved){
           var s = JSON.parse(saved);
           var db = getDB();
-          if(s.username === '__master__' || (db.users && db.users[s.username])){
+          if(s.username === 'master' || (db.users && db.users[s.username])){
             CUR = s;
             CFG = db.settings || {vibrate:true, confirmClose:true};
             purgeAllExpiredCatalogs();
