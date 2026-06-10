@@ -11377,7 +11377,7 @@ function clearAuditLog(){
         </div>
         <div>
           <label class="rm-lbl">🏷️ Número de pedido</label>
-          <input id="rm-ped" placeholder="Ej: 4521" class="rm-inp">
+          <input id="rm-ped" placeholder="Ej: 112812345" class="rm-inp">
         </div>
       </div>
       <button onclick="rmProgramar()" class="rm-cta">🚚 Programar notificación</button>
@@ -11481,8 +11481,8 @@ function clearAuditLog(){
    Datos en _dbCache.rutamsg = { contacts:{}, queue:[], template:"..." }
 ══════════════════════════════════════════════════════ */
 (function(){
-  var DEFAULT_TPL = "Hola {nombre} 👋, tu pedido #{pedido} ya va en camino 🚚. ¡Pronto lo tendrás en tus manos! Por favor estar atento al celular, en un momento el conductor se comunicara con usted para coordinar la entrega. Gracias por tu compra.
-    *-Almacenes Corona-*";
+  var DEFAULT_TPL = "Hola {nombre} 👋, tu pedido #{pedido} ya va en camino 🚚. ¡Pronto lo tendrás en tus manos! Por favor estar atento al celular, en un momento el conductor se comunicara con usted para coordinar la entrega. Gracias por tu compra.";
+  var DEFAULT_TPL = "*-Almacenes Corona-*";
   var TTL_MS = 24*60*60*1000;
   var _tickHnd = null, _schedHnd = null, _fired = false;
 
