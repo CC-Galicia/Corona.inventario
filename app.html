@@ -11890,7 +11890,7 @@ function clearAuditLog(){
         rows+
       '</div>';
     }).join('');
-    bitHost.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">📒 Bitácora de envíos <span style="background:rgba(180,108,255,.18);color:#c4a3ff;border:1px solid rgba(180,108,255,.4);padding:1px 7px;border-radius:20px;font-size:9px;">solo admin · master</span></div>'+cards;
+    bitHost.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">📒 Bitácora de envíos <span style="background:rgba(180,108,255,.18);color:#c4a3ff;border:1px solid rgba(180,108,255,.4);padding:1px 7px;border-radius:20px;font-size:9px;">solo visible para admin</span></div>'+cards;
   };
 
   // Auto-render cuando Firebase sincronice (también lo hace el listener principal)
