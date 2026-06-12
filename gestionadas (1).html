@@ -1,0 +1,758 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║      InvTrack Pro — Novedades Gestionadas (panel separado)   ║
+  ║                                                              ║
+  ║  Autor y Propietario: Jose Pérez                            ║
+  ║  © 2026 Jose Pérez. Todos los derechos reservados.          ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="InvTrack Pro">
+<meta name="theme-color" content="#00e5a0">
+<title>Novedades Gestionadas — InvTrack Pro</title>
+<meta name="author" content="Jose Pérez">
+<meta name="copyright" content="© 2026 Jose Pérez. Todos los derechos reservados.">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+<!-- ══════ PANTALLA DE CARGA (se oculta cuando el panel está sincronizado) ══════ -->
+<div id="fb-loading" style="position:fixed;inset:0;background:var(--bg,#080b10);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;transition:opacity .35s;">
+  <div style="width:72px;height:72px;background:linear-gradient(135deg,#00e5a0,#0094ff);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 40px rgba(0,229,160,.3);">📂</div>
+  <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:#eef0f5;">Novedades Gestionadas</div>
+  <div id="fb-sub" style="font-size:14px;color:#8a94a8;">Sincronizando con la nube ☁️</div>
+  <div style="width:160px;height:5px;background:#181e2c;border-radius:3px;overflow:hidden;"><div id="fb-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#00e5a0,#0094ff);border-radius:3px;transition:width .4s;"></div></div>
+  <button id="fb-retry" onclick="window.location.reload()" style="display:none;margin-top:6px;background:rgba(0,229,160,.12);border:1px solid rgba(0,229,160,.4);color:#00e5a0;border-radius:10px;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">↻ Reintentar</button>
+</div>
+
+<!-- ══════ NOVEDADES GESTIONADAS (compartido) ══════ -->
+<div id="screen-gestionadas" class="screen">
+  <div class="tb"><button class="bk" onclick="goBack()">←</button>
+    <div><div class="tb-ti">Novedades Gestionadas</div><div class="tb-su" id="gest-sub">Veredictos emitidos</div></div>
+  </div>
+  <div class="sa">
+    <!-- Paso 1: Filtros (para evitar cargar todas las fotos de golpe) -->
+    <div id="gest-filters" class="pan" style="padding:12px 14px;margin:8px 0 10px;">
+      <div style="font-family:var(--fh);font-size:13px;font-weight:800;color:var(--tx);margin-bottom:8px;">🔎 Filtros</div>
+      <div style="font-size:11px;color:var(--tx3);margin-bottom:10px;">Selecciona usuario, periodo y veredicto antes de cargar. Esto evita descargar todas las fotos a la vez.</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+        <label style="font-size:11px;color:var(--tx2);">👤 Usuario
+          <select id="gest-f-user" style="margin-top:3px;width:100%;padding:8px 10px;border-radius:8px;background:var(--sf2);color:var(--tx);border:1px solid var(--bd);"></select>
+        </label>
+        <label style="font-size:11px;color:var(--tx2);">🗓 Periodo
+          <select id="gest-f-period" style="margin-top:3px;width:100%;padding:8px 10px;border-radius:8px;background:var(--sf2);color:var(--tx);border:1px solid var(--bd);"></select>
+        </label>
+        <label style="font-size:11px;color:var(--tx2);">⚖️ Veredicto
+          <select id="gest-f-verdict" style="margin-top:3px;width:100%;padding:8px 10px;border-radius:8px;background:var(--sf2);color:var(--tx);border:1px solid var(--bd);">
+            <option value="all">Todos</option>
+            <option value="ok">✅ Tiene razón</option>
+            <option value="no">⚠️ No tiene razón</option>
+          </select>
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button onclick="applyGestFilters()" style="flex:1;background:var(--ac);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:800;font-size:13px;cursor:pointer;">Cargar resultados</button>
+        <button onclick="resetGestFilters()" style="background:var(--sf2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;font-weight:700;font-size:12px;cursor:pointer;">Limpiar</button>
+      </div>
+    </div>
+
+    <!-- Paso 2: Resultados (ocultos hasta aplicar filtros) -->
+    <div id="gest-results" style="display:none;">
+      <div class="tabs" style="padding-top:6px;">
+        <div class="tab on" id="gest-tab-all" onclick="setGestTab('all',this)">Todas</div>
+        <div class="tab" id="gest-tab-ok" onclick="setGestTab('ok',this)">✅ Razón</div>
+        <div class="tab" id="gest-tab-no" onclick="setGestTab('no',this)">⚠️ Sin razón</div>
+      </div>
+      <div class="sb" style="margin:10px 0 8px;"><span class="sb-ic">🔍</span>
+        <input type="text" id="gest-search" placeholder="Buscar referencia, ubicación o usuario…" oninput="renderGestionadas()" style="padding-left:38px;">
+      </div>
+      <div id="gest-count" style="font-size:11px;color:var(--tx3);margin:0 0 8px;"></div>
+      <div id="gest-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL CONFIRMACIÓN ══════ -->
+<div id="conf-mo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9999;justify-content:center;align-items:center;">
+  <div style="background:var(--sf);border-radius:20px;width:calc(100% - 40px);max-width:440px;padding:24px 20px 20px;border:1px solid var(--bd);box-shadow:var(--sh);">
+    <div class="mo-ti" id="conf-ti" style="font-size:17px;margin-bottom:10px;"></div>
+    <div id="conf-msg" style="font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:20px;white-space:pre-line;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn bs" style="flex:1;" id="conf-cancel">Cancelar</button>
+      <button class="btn bp" style="flex:1;" id="conf-ok">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MODAL CONFIRMAR CON CONTRASEÑA (admin/master) ══════ -->
+<!-- ══════ MODAL CONFIRMAR CON CONTRASEÑA (admin/master) ══════ -->
+<div id="pwconf-mo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;justify-content:center;align-items:center;">
+  <div style="background:var(--sf);border-radius:20px;width:calc(100% - 40px);max-width:440px;padding:24px 20px 20px;border:1.5px solid rgba(255,77,109,.45);box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(255,77,109,.22),rgba(255,77,109,.08));display:flex;align-items:center;justify-content:center;font-size:18px;">🔐</div>
+      <div class="mo-ti" id="pwconf-ti" style="font-size:17px;">Confirmar con contraseña</div>
+    </div>
+    <div id="pwconf-msg" style="font-size:13px;color:var(--tx2);line-height:1.55;margin-bottom:14px;white-space:pre-line;"></div>
+    <div class="fi" style="margin-bottom:6px;">
+      <label style="font-size:12px;color:var(--tx2);">Contraseña de <span id="pwconf-user" style="color:var(--tx);font-weight:700;"></span></label>
+      <input type="password" id="pwconf-pass" placeholder="Tu contraseña" autocomplete="current-password" style="width:100%;">
+    </div>
+    <div id="pwconf-err" style="font-size:12px;color:var(--dg,#ff4d6d);min-height:16px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn bs" style="flex:1;" id="pwconf-cancel">Cancelar</button>
+      <button class="btn bd2" style="flex:1;" id="pwconf-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ VISOR DE FOTOS ══════ -->
+<div id="photo-viewer-mo" onclick="closePhotoViewer()" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;flex-direction:column;padding:16px;">
+  <button onclick="closePhotoViewer()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;">✕</button>
+  <img id="photo-viewer-img" src="" alt="Evidencia" style="max-width:100%;max-height:85dvh;object-fit:contain;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.6);">
+  <div id="photo-viewer-lbl" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5);text-align:center;"></div>
+</div>
+
+<div class="flash" id="flash"></div>
+<div id="sync-status-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9998;padding:7px 16px;font-size:12px;font-weight:600;text-align:center;align-items:center;justify-content:center;gap:6px;border-bottom:1px solid;backdrop-filter:blur(8px);letter-spacing:0.01em;"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   NOVEDADES GESTIONADAS — página independiente
+   Mantiene la misma funcionalidad, diseño y permisos
+   por rol (operador / admin / master) que app.html.
+══════════════════════════════════════════════════════ */
+
+// ── STATE ──
+var CUR = { username:'', role:'', name:'' }; window.CUR = CUR;
+
+// ── FIREBASE REALTIME DATABASE ──
+let _dbCache = {users:{},catalogs:{},inventories:[],masterLocs:{},locStatus:{},settings:{}};
+let _fbReady = false;
+let _fbRef = null;
+let _syncQueue = [];
+let _isOnline = navigator.onLine;
+let _syncIndicator = null;
+
+function _initFirebase(){
+  var _x=atob,
+  _j=["QUl6YV","N5QndR","Mk5Ldk","lpd1Nm","anh2RF","djQ043","eE1OcV","BVUGZM","VFhz"],
+  _a=["YXBwLW","RlLWlu","dmVudG","FyaW8t","OTZkNW","EuZmly","ZWJhc2","VhcHAu","Y29t"],
+  _d=["aHR0cH","M6Ly9h","cHAtZG","UtaW52","ZW50YX","Jpby05","NmQ1YS","1kZWZh","dWx0LX","J0ZGIu","ZmlyZW","Jhc2Vp","by5jb2","0="],
+  _p=["YXBwLW","RlLWlu","dmVudG","FyaW8t","OTZkNW","E="],
+  _s=["YXBwLW","RlLWlu","dmVudG","FyaW8t","OTZkNW","EuZmly","ZWJhc2","VzdG9y","YWdlLm","FwcA=="],
+  _m=["MzA3Nz","YxOTUz","Nzc0"],
+  _i=["MTozMD","c3NjE5","NTM3Nz","Q6d2Vi","Ojg1Nz","VhYWVh","NjQ4OT","YxYWFl","NTZjZm","Y="];
+  const config = {
+    apiKey:_x(_j.join("")),
+    authDomain:_x(_a.join("")),
+    databaseURL:_x(_d.join("")),
+    projectId:_x(_p.join("")),
+    storageBucket:_x(_s.join("")),
+    messagingSenderId:_x(_m.join("")),
+    appId:_x(_i.join(""))
+  };
+  firebase.initializeApp(config);
+  firebase.auth().signInAnonymously()
+    .catch(function(error){
+      console.error('Auth anónima falló:', error);
+      _fbReady = true;
+    });
+  firebase.auth().onAuthStateChanged(function(user){
+    if(!user) return;
+    _fbRef = firebase.database().ref('invtrack');
+    _fbRef.on('value', function(snapshot){
+      const data = snapshot.val();
+      _dbCache = data || {users:{},catalogs:{},inventories:[],masterLocs:{},locStatus:{},settings:{}};
+      _fbReady = true;
+      try{ var t=(_dbCache.settings||{}).theme; if(t && window.applyTheme) window.applyTheme(t); }catch(e){}
+      // Refrescar resultados en tiempo real si ya se aplicaron filtros
+      try{ if(CUR && CUR.username && _gestFilters.applied) renderGestionadas(); }catch(e){}
+    }, function(error){
+      console.error('Firebase error:', error);
+      _fbReady = true;
+    });
+  });
+}
+
+function getDB(){
+  return JSON.parse(JSON.stringify(_dbCache));
+}
+
+function _eq(a,b){ try{ return JSON.stringify(a)===JSON.stringify(b); }catch(e){ return false; } }
+
+/* Construye un objeto de paths granulares para firebase.update()
+   comparando el estado anterior (oldDb) con el nuevo (newDb).
+   Esto evita sobrescribir TODO el árbol y elimina la condición de
+   carrera que borraba usuarios/inventarios recién creados cuando dos
+   clientes guardaban casi al mismo tiempo. */
+function _buildUpdates(oldDb, newDb){
+  const u = {};
+  const old = oldDb || {};
+  const nw  = newDb || {};
+  // activeUsers se gestiona aparte (saveActive); nunca lo incluimos aquí
+  const SKIP = { activeUsers: 1 };
+  // Recolectar TODAS las claves presentes en cualquiera de los dos snapshots
+  const allKeys = new Set();
+  Object.keys(old).forEach(function(k){ if(!SKIP[k]) allKeys.add(k); });
+  Object.keys(nw ).forEach(function(k){ if(!SKIP[k]) allKeys.add(k); });
+
+  allKeys.forEach(function(k){
+    const o = old[k];
+    const n = nw[k];
+    if(_eq(o, n)) return;
+
+    // Caso 1: array (ej. inventories, tasks) → diff por índice
+    if(Array.isArray(o) || Array.isArray(n)){
+      const oa = Array.isArray(o) ? o : [];
+      const na = Array.isArray(n) ? n : [];
+      const maxLen = Math.max(oa.length, na.length);
+      for(let i=0; i<maxLen; i++){
+        if(i >= na.length){ u[k+'/'+i] = null; }
+        else if(!_eq(oa[i], na[i])) u[k+'/'+i] = na[i];
+      }
+      return;
+    }
+
+    // Caso 2: objeto plano (ej. users, locNotes, notifications) → merge granular
+    if(o && typeof o === 'object' && n && typeof n === 'object'){
+      Object.keys(n).forEach(function(id){
+        if(!_eq(o[id], n[id])) u[k+'/'+id] = n[id];
+      });
+      Object.keys(o).forEach(function(id){
+        if(!(id in n)) u[k+'/'+id] = null;
+      });
+      return;
+    }
+
+    // Caso 3: la clave aparece/desaparece, o cambia de tipo, o es primitiva
+    if(n === undefined){
+      u[k] = null;
+    } else if(o === undefined || typeof o !== typeof n){
+      // Tipo nuevo o cambio de tipo → reemplazar el nodo completo
+      u[k] = n;
+    } else {
+      u[k] = n;
+    }
+  });
+  return u;
+}
+
+function setDB(db){
+  // Preservar activeUsers en cache local — ese nodo lo gestiona saveActive por separado
+  const _savedActiveUsers = _dbCache.activeUsers || {};
+  // Snapshot anterior ANTES de mutar la cache, para diffing
+  const _prev = _dbCache;
+  _dbCache = db;
+  _dbCache.activeUsers = _savedActiveUsers;
+
+  const newForWire = Object.assign({}, db); delete newForWire.activeUsers;
+  const prevForWire = Object.assign({}, _prev); delete prevForWire.activeUsers;
+  const updates = _buildUpdates(prevForWire, newForWire);
+  if(!Object.keys(updates).length) return; // nada que escribir
+
+  if(_fbRef && _isOnline){
+    _fbRef.update(updates).catch(function(e){
+      console.error('Firebase write error:', e);
+      _enqueueSync(updates);
+    });
+  } else {
+    _enqueueSync(updates);
+  }
+}
+
+function _enqueueSync(updates){
+  // Fusionar con la cola pendiente — los paths más recientes ganan.
+  if(!_syncQueue.length) _syncQueue = [{}];
+  Object.assign(_syncQueue[0], updates);
+  _updateSyncIndicator();
+}
+
+function _flushSyncQueue(){
+  if(!_syncQueue.length || !_fbRef || !_isOnline) return;
+  const data = _syncQueue[0];
+  if(!data || !Object.keys(data).length){ _syncQueue=[]; _updateSyncIndicator(); return; }
+  _fbRef.update(data).then(function(){
+    _syncQueue = [];
+    _updateSyncIndicator();
+    flash('☁️ Datos sincronizados','ok');
+  }).catch(function(e){
+    console.error('Sync retry failed:', e);
+    setTimeout(_flushSyncQueue, 5000); // reintentar en 5s
+  });
+}
+
+function _updateSyncIndicator(){
+  const el = document.getElementById('sync-status-bar');
+  if(!el) return;
+  if(!_isOnline){
+    el.style.display = 'flex';
+    el.innerHTML = '🔴 Sin conexión — los cambios se guardarán al reconectar';
+    el.style.background = 'rgba(220,50,50,0.15)';
+    el.style.color = '#ff6b6b';
+    el.style.borderColor = 'rgba(220,50,50,0.3)';
+  } else if(_syncQueue.length > 0){
+    el.style.display = 'flex';
+    el.innerHTML = '🟡 Reconectado — sincronizando cambios pendientes…';
+    el.style.background = 'rgba(255,180,0,0.15)';
+    el.style.color = '#f5a623';
+    el.style.borderColor = 'rgba(255,180,0,0.3)';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// Escuchar cambios de conectividad
+window.addEventListener('online', function(){
+  _isOnline = true;
+  _updateSyncIndicator();
+  if(_syncQueue.length > 0){
+    setTimeout(_flushSyncQueue, 1000); // esperar 1s para que Firebase se reconecte
+  }
+});
+window.addEventListener('offline', function(){
+  _isOnline = false;
+  _updateSyncIndicator();
+  flash('📵 Sin conexión — trabajando offline','wn');
+});
+
+function getUserInvs(username){
+  const db=getDB();
+  return (db.inventories||[]).filter(i=>i.username===username);
+}
+function getAllInvs(){
+  return (getDB().inventories)||[];
+}
+
+function hash(s){ let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}return String(h); }
+function isMaster(){ return CUR && CUR.role==='master'; }
+
+function appConfirm(title,msg,onOk,onCancel){
+  const mo=document.getElementById('conf-mo');
+  document.getElementById('conf-ti').textContent=title;
+  document.getElementById('conf-msg').textContent=msg;
+  mo.style.display='flex';
+  const okBtn=document.getElementById('conf-ok');
+  const cancelBtn=document.getElementById('conf-cancel');
+  function cleanup(){
+    mo.style.display='none';
+    okBtn.onclick=null;
+    cancelBtn.onclick=null;
+  }
+  okBtn.onclick=()=>{cleanup();if(onOk) onOk();};
+  cancelBtn.onclick=()=>{cleanup();if(onCancel) onCancel();};
+}
+
+function openPhotoViewer(src, lbl){
+  const mo=document.getElementById('photo-viewer-mo');
+  document.getElementById('photo-viewer-img').src=src;
+  document.getElementById('photo-viewer-lbl').textContent=lbl||'📷 Foto de evidencia';
+  mo.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closePhotoViewer(){
+  const mo=document.getElementById('photo-viewer-mo');
+  mo.style.display='none';
+  document.getElementById('photo-viewer-img').src='';
+  document.body.style.overflow='';
+}
+
+let _ft;
+function flash(msg,type=''){const el=document.getElementById('flash');el.textContent=msg;el.className='flash'+(type?' '+type:'');void el.offsetWidth;el.classList.add('on');clearTimeout(_ft);_ft=setTimeout(()=>el.classList.remove('on'),2800);}
+function toDS(d){return d.toISOString().slice(0,10);}
+// Redondea y formatea un número eliminando decimales innecesarios (máx 2 decimales)
+function fmtNum(n){if(n===null||n===undefined||n==='') return '—';const r=Math.round(n*100)/100;return Number.isInteger(r)?String(r):r.toFixed(2).replace(/\.?0+$/,'');}
+function fT(d){return d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function dur(s,e){const sec=Math.floor((new Date(e)-new Date(s))/1000);const m=Math.floor(sec/60),r=sec%60;return m<60?`${m}m ${r}s`:`${Math.floor(m/60)}h ${m%60}m`;}
+function sameWeek(a,b){const sw=d=>{const x=new Date(d);x.setDate(x.getDate()-x.getDay());x.setHours(0,0,0,0);return x;};return sw(a).getTime()===sw(b).getTime();}
+
+// ── THEME (sincronizado desde Firebase, igual que app.html) ──
+function applyTheme(mode){
+  if(mode==='light'){ document.body.classList.add('light-mode'); }
+  else { document.body.classList.remove('light-mode'); }
+}
+window.applyTheme = applyTheme;
+
+// ── NAV ──
+function goBack(){ window.location.href='app.html'; }
+
+/* ══════════════════════════════════════════════════════
+   NOVEDADES GESTIONADAS — panel compartido (op/admin/master)
+   - Operadores: ven solo las suyas
+   - Admin/Master: ven todas (solo master puede eliminar)
+====================================================== */
+let _gestTab='all';
+let _gestFilters={user:'',period:'',verdict:'all',applied:false};
+function initGestionadas(){
+  _gestTab='all';
+  ['all','ok','no'].forEach(t=>{
+    const el=document.getElementById('gest-tab-'+t);
+    if(el) el.className='tab'+(t==='all'?' on':'');
+  });
+  const sub=document.getElementById('gest-sub');
+  if(sub) sub.textContent=(CUR.role==='admin'||CUR.role==='master')?'Todas las novedades con veredicto':'Mis novedades revisadas';
+  _gestFilters={user:'',period:'',verdict:'all',applied:false};
+  _populateGestFilterOptions();
+  const r=document.getElementById('gest-results'); if(r) r.style.display='none';
+  const f=document.getElementById('gest-filters'); if(f) f.style.display='';
+  updGestBadgeOp();
+}
+function _populateGestFilterOptions(){
+  const rows=_collectGestionadasRaw();
+  const isOp=!(CUR.role==='admin'||CUR.role==='master');
+  const uSel=document.getElementById('gest-f-user');
+  const pSel=document.getElementById('gest-f-period');
+  if(!uSel||!pSel) return;
+  // Usuarios
+  const users=new Map();
+  rows.forEach(r=>{ if(r.inv?.username) users.set(r.inv.username, r.userName||r.inv.username); });
+  let uOpts='<option value="">— Todos los usuarios —</option>';
+  [...users.entries()].sort((a,b)=>a[1].localeCompare(b[1])).forEach(([k,n])=>{ uOpts+=`<option value="${k}">${n}</option>`; });
+  uSel.innerHTML=uOpts;
+  if(isOp){ uSel.value=CUR.username; uSel.disabled=true; } else { uSel.disabled=false; }
+  // Periodos (YYYY-MM)
+  const periods=new Set();
+  rows.forEach(r=>{
+    const d=r.at||r.inv?.startTime||(r.inv?.date?r.inv.date+'T12:00:00':null);
+    if(!d) return;
+    const dt=new Date(d); if(isNaN(dt)) return;
+    periods.add(dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'));
+  });
+  const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  let pOpts='<option value="">— Todos los periodos —</option>';
+  [...periods].sort().reverse().forEach(p=>{
+    const [y,m]=p.split('-'); pOpts+=`<option value="${p}">${months[parseInt(m,10)-1]} ${y}</option>`;
+  });
+  pSel.innerHTML=pOpts;
+}
+function applyGestFilters(){
+  _gestFilters.user=document.getElementById('gest-f-user')?.value||'';
+  _gestFilters.period=document.getElementById('gest-f-period')?.value||'';
+  _gestFilters.verdict=document.getElementById('gest-f-verdict')?.value||'all';
+  _gestFilters.applied=true;
+  _gestTab=_gestFilters.verdict;
+  ['all','ok','no'].forEach(t=>{
+    const el=document.getElementById('gest-tab-'+t);
+    if(el) el.className='tab'+(t===_gestTab?' on':'');
+  });
+  const r=document.getElementById('gest-results'); if(r) r.style.display='';
+  renderGestionadas();
+}
+function resetGestFilters(){
+  const isOp=!(CUR.role==='admin'||CUR.role==='master');
+  const u=document.getElementById('gest-f-user'); if(u && !isOp) u.value='';
+  const p=document.getElementById('gest-f-period'); if(p) p.value='';
+  const v=document.getElementById('gest-f-verdict'); if(v) v.value='all';
+  _gestFilters={user:isOp?CUR.username:'',period:'',verdict:'all',applied:false};
+  const r=document.getElementById('gest-results'); if(r) r.style.display='none';
+}
+function setGestTab(tab, el){
+  _gestTab=tab;
+  _gestFilters.verdict=tab;
+  const v=document.getElementById('gest-f-verdict'); if(v) v.value=tab;
+  document.querySelectorAll('#screen-gestionadas .tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderGestionadas();
+}
+function _collectGestionadasRaw(){
+  const db=getDB();
+  const verdicts=db.novedadVerdicts||{};
+  const isOp=!(CUR.role==='admin'||CUR.role==='master');
+  const invs = isOp ? getUserInvs(CUR.username) : getAllInvs();
+  const byInv={};
+  invs.forEach(i=>{byInv[String(i.id)]=i;});
+  const rows=[];
+  Object.entries(verdicts).forEach(([vKey,vd])=>{
+    // vKey: ${invId}_${loc}_${code}  o  ${invId}_${loc}_${code}_missing
+    const isMissing=vKey.endsWith('_missing');
+    const base=isMissing?vKey.slice(0,-('_missing'.length)):vKey;
+    const parts=base.split('_');
+    if(parts.length<3) return;
+    const invId=parts[0];
+    // loc y code: el primer segmento es invId; el resto puede contener "_" en el código.
+    // Tomamos loc como segundo segmento y code como el resto.
+    const locCode=parts[1];
+    const code=parts.slice(2).join('_');
+    const inv=byInv[invId];
+    if(!inv) return; // no visible para este usuario
+    const loc=(inv.locations||[]).find(l=>l.code===locCode);
+    if(!loc) continue_skip();
+    if(!loc) return;
+    const item=loc.items?.[code];
+    if(!item) return;
+    const v=vd?.v||vd;
+    const obs=vd?.obs||'';
+    const vphoto=vd?.photo||'';
+    const by=vd?.by||'';
+    const at=vd?.at||'';
+    const userName=getDB().users?.[inv.username]?.name||inv.user||inv.username;
+    let type='diff', valHtml='';
+    if(item.isExtra){
+      type='extra';
+      valHtml=`<div style="font-family:var(--fh);font-size:15px;font-weight:800;color:var(--ac2);">${item.counted??'—'}</div><div style="font-size:10px;color:var(--tx2);">uds · extra</div>`;
+    } else if(isMissing){
+      type='missing';
+      valHtml=`<div style="font-family:var(--fh);font-size:13px;font-weight:800;color:var(--wn);">Sin contar</div><div style="font-size:10px;color:var(--tx2);">SAP: ${fmtNum(item.sapStock)}</div>`;
+    } else {
+      const d=Math.round(((item.counted||0)-(item.sapStock||0))*100)/100;
+      valHtml=`<div style="font-family:var(--fh);font-size:15px;font-weight:800;color:var(--dg);">${d>0?'+':''}${fmtNum(d)}</div><div style="font-size:10px;color:var(--tx2);">SAP:${fmtNum(item.sapStock)} / Cnt:${fmtNum(item.counted)}</div>`;
+    }
+    rows.push({vKey,v,obs,vphoto,by,at,inv,loc:locCode,code,item,userName,type,valHtml});
+  });
+  // ordenar por fecha de veredicto desc
+  rows.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  return rows;
+}
+function continue_skip(){}
+function _collectGestionadas(){
+  let rows=_collectGestionadasRaw();
+  if(_gestFilters.user) rows=rows.filter(r=>r.inv?.username===_gestFilters.user);
+  if(_gestFilters.period){
+    rows=rows.filter(r=>{
+      const d=r.at||r.inv?.startTime||(r.inv?.date?r.inv.date+'T12:00:00':null);
+      if(!d) return false;
+      const dt=new Date(d); if(isNaN(dt)) return false;
+      const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+      return key===_gestFilters.period;
+    });
+  }
+  return rows;
+}
+function updGestBadgeOp(){
+  const b=document.getElementById('gest-badge-op'); if(!b) return;
+  if(CUR.role==='admin'||CUR.role==='master'){b.style.display='none';return;}
+  const n=_collectGestionadasRaw().length;
+  if(n>0){b.style.display='inline-block';b.textContent=n;} else b.style.display='none';
+}
+function renderGestionadas(){
+  const el=document.getElementById('gest-content'); if(!el) return;
+  if(!_gestFilters.applied){
+    el.innerHTML='';
+    const cnt=document.getElementById('gest-count'); if(cnt) cnt.textContent='';
+    return;
+  }
+  const q=(document.getElementById('gest-search')?.value||'').toUpperCase();
+  let rows=_collectGestionadas();
+  if(_gestTab==='ok') rows=rows.filter(r=>r.v==='ok');
+  else if(_gestTab==='no') rows=rows.filter(r=>r.v==='no');
+  if(q) rows=rows.filter(r=>r.code.toUpperCase().includes(q)||(r.item.name||'').toUpperCase().includes(q)||r.loc.toUpperCase().includes(q)||(r.userName||'').toUpperCase().includes(q));
+  const cnt=document.getElementById('gest-count');
+  if(cnt) cnt.textContent=rows.length?`${rows.length} novedad${rows.length===1?'':'es'} gestionada${rows.length===1?'':'s'}`:'';
+  if(!rows.length){
+    el.innerHTML='<div class="es"><div class="ei">📭</div><p>Sin novedades gestionadas</p></div>';
+    return;
+  }
+  el.innerHTML=rows.map(r=>{
+    const fecha=new Date(r.inv.startTime||(r.inv.date+'T12:00:00')).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+    const fechaVer=r.at?new Date(r.at).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'';
+    const typeIcon=r.type==='extra'?'🔵':(r.type==='missing'?'🚫':'⚡');
+    const typeColor=r.type==='extra'?'var(--ac2)':(r.type==='missing'?'var(--wn)':'var(--dg)');
+    const typeLbl=r.type==='extra'?'Extra':(r.type==='missing'?'Sin contar':'Diferencia');
+    const badge=r.v==='ok'
+      ?`<span class="vrd-badge-ok" style="font-size:11px;">✅ Operador tiene razón</span>`
+      :`<span class="vrd-badge-no" style="font-size:11px;">⚠️ Operador no tiene razón</span>`;
+    const opNote=(r.item.note||'').trim();
+    const opNoteShow=opNote && opNote!=='Referencia no contada al cerrar la ubicación' && opNote!=='Referencia no contada al cerrar el inventario';
+    const opObsHtml=opNoteShow
+      ?`<div style="margin-top:6px;font-size:11px;color:var(--tx);background:rgba(255,182,39,.08);border-left:2px solid var(--wn);border-radius:6px;padding:6px 9px;"><b style="color:var(--wn);">📝 Observación operador:</b> ${r.item.note}</div>`:'';
+    const admObsHtml=r.obs
+      ?`<div style="margin-top:6px;font-size:11px;color:var(--tx);background:var(--sf2);border-left:2px solid var(--ac);border-radius:6px;padding:6px 9px;"><b style="color:var(--ac);">💬 Observación ${r.by||'admin'}:</b> ${r.obs}</div>`
+      :`<div style="margin-top:6px;font-size:11px;color:var(--tx3);font-style:italic;">— Sin observación adicional del administrador —</div>`;
+    const photoHtml=r.item.photo
+      ?`<div style="margin-top:8px;display:flex;align-items:center;gap:10px;background:rgba(180,108,255,.06);border:1px solid rgba(180,108,255,.25);border-radius:8px;padding:6px 8px;cursor:zoom-in;" onclick="openPhotoViewer(this.querySelector('img').src,'Foto del operador · ${r.userName||''} · ${r.code}')">
+          <img src="${r.item.photo}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0;display:block;border:1px solid rgba(180,108,255,.35);pointer-events:none;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:700;color:var(--pu);">📷 Foto del operador</div>
+            <div style="font-size:10.5px;color:var(--tx2);margin-top:1px;">👤 ${r.userName||'—'}</div>
+            <div style="font-size:9.5px;color:var(--tx3);margin-top:1px;">${r.code} · ${r.loc} · toca para ampliar</div>
+          </div>
+        </div>`:'';
+    const admPhotoHtml=r.vphoto
+      ?`<div style="margin-top:8px;display:flex;align-items:center;gap:10px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.3);border-radius:8px;padding:6px 8px;cursor:zoom-in;" onclick="openPhotoViewer(this.querySelector('img').src,'Foto del veredicto · ${r.by||'admin'} · ${r.code}')">
+          <img src="${r.vphoto}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0;display:block;border:1px solid rgba(0,229,160,.4);pointer-events:none;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:700;color:var(--ac);">📷 Foto del veredicto</div>
+            <div style="font-size:10.5px;color:var(--tx2);margin-top:1px;">🛡 ${r.by||'admin'}</div>
+            <div style="font-size:9.5px;color:var(--tx3);margin-top:1px;">${r.code} · ${r.loc} · toca para ampliar</div>
+          </div>
+        </div>`:'';
+    const delBtn=isMaster()
+      ?`<button onclick="deleteGestionada('${r.vKey}')" title="Eliminar novedad gestionada" style="background:rgba(255,90,90,.12);border:1px solid rgba(255,90,90,.4);color:#ff6b6b;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;margin-left:auto;">🗑 Eliminar</button>`:'';
+    return `<div class="pan" style="margin:0 0 10px;padding:12px 14px;border-left:3px solid ${typeColor};">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--fh);font-weight:800;font-size:14px;color:${typeColor};">${typeIcon} ${r.code} <span style="font-size:10px;font-weight:700;color:var(--tx3);background:var(--sf2);padding:2px 6px;border-radius:5px;margin-left:4px;">${typeLbl}</span></div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px;">${r.item.name||'—'}</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:3px;">📍 ${r.loc} · 👤 ${r.userName} · 🗓 ${fecha}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">${r.valHtml}</div>
+      </div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        ${badge}
+        ${fechaVer?`<span style="font-size:10px;color:var(--tx3);">— veredicto ${r.by||''} · ${fechaVer}</span>`:''}
+        ${delBtn}
+      </div>
+      ${admObsHtml}
+      ${admPhotoHtml}
+      ${opObsHtml}
+      ${photoHtml}
+    </div>`;
+  }).join('');
+}
+
+function deleteGestionada(vKey){
+  if(!isMaster()){ alert('Solo el usuario master puede eliminar novedades gestionadas.'); return; }
+  confirmAuditAction('Eliminar novedad gestionada','Se borrará el veredicto, la observación y la foto adjunta. Esta acción no se puede deshacer.',()=>{
+    const db=getDB();
+    const prev = db.novedadVerdicts && db.novedadVerdicts[vKey];
+    if(prev){
+      logAudit('gestionada.delete', `Eliminó novedad gestionada (${vKey})`, {vKey, prev});
+      delete db.novedadVerdicts[vKey];
+      setDB(db);
+    }
+    renderGestionadas();
+    try{ updateGestBadge && updateGestBadge(); }catch(e){}
+  });
+}
+
+function logAudit(action, summary, details){
+  try{
+    if(typeof isMaster==='function' && isMaster()) return; // master no deja registro
+    const db=getDB();
+    if(!Array.isArray(db.auditLog)) db.auditLog=[];
+    db.auditLog.push({
+      id: 'a_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      at: new Date().toISOString(),
+      action: action||'unknown',
+      summary: summary||'',
+      actor: CUR ? (CUR.username||'') : '',
+      actorName: CUR ? (CUR.name||CUR.username||'') : '',
+      actorRole: CUR ? (CUR.role||'') : '',
+      details: details||null
+    });
+    // Limitar a las últimas 1000 entradas
+    if(db.auditLog.length>1000) db.auditLog = db.auditLog.slice(-1000);
+    setDB(db);
+  }catch(e){ console.warn('logAudit err',e); }
+}
+
+// Wrapper de confirmación con advertencia explícita para admin
+function confirmAuditAction(title, msg, onOk, onCancel){
+  const isAdm = CUR && CUR.role==='admin';
+  const isMa = CUR && CUR.role==='master';
+  const warn = isAdm
+    ? '\n\n⚠️ Esta acción quedará registrada en la Bitácora del administrador.'
+    : '';
+  appConfirm(title, (msg||'') + warn, ()=>{
+    // Si es admin o master, exigir contraseña antes de ejecutar la acción destructiva
+    if(isAdm || isMa){
+      requirePassword(title, 'Por seguridad, confirma esta acción con tu contraseña.', onOk, onCancel);
+    } else {
+      if(onOk) onOk();
+    }
+  }, onCancel);
+}
+
+/* ── Confirmación con contraseña para acciones destructivas (admin/master) ── */
+function requirePassword(title, msg, onOk, onCancel){
+  if(!CUR || !CUR.username){ if(onOk) onOk(); return; }
+  const mo = document.getElementById('pwconf-mo');
+  if(!mo){ if(onOk) onOk(); return; }
+  document.getElementById('pwconf-ti').textContent = title || 'Confirmar con contraseña';
+  document.getElementById('pwconf-msg').textContent = msg || 'Confirma esta acción con tu contraseña.';
+  document.getElementById('pwconf-user').textContent = '@' + CUR.username;
+  const inp = document.getElementById('pwconf-pass');
+  const err = document.getElementById('pwconf-err');
+  const ok  = document.getElementById('pwconf-ok');
+  const cnl = document.getElementById('pwconf-cancel');
+  inp.value = ''; err.textContent = '';
+  mo.style.display = 'flex';
+  setTimeout(()=>{ try{ inp.focus(); }catch(e){} }, 50);
+  function cleanup(){
+    mo.style.display='none';
+    ok.onclick=null; cnl.onclick=null; inp.onkeydown=null;
+  }
+  function tryConfirm(){
+    const pass = inp.value || '';
+    if(!pass){ err.textContent='Ingresa tu contraseña'; return; }
+    const db = getDB();
+    const u = db.users && db.users[CUR.username];
+    if(!u || u.password !== hash(pass)){
+      err.textContent = 'Contraseña incorrecta';
+      inp.select();
+      return;
+    }
+    cleanup();
+    if(onOk) onOk();
+  }
+  ok.onclick = tryConfirm;
+  cnl.onclick = ()=>{ cleanup(); if(onCancel) onCancel(); };
+  inp.onkeydown = (e)=>{ if(e.key==='Enter'){ e.preventDefault(); tryConfirm(); } };
+}
+
+/* ── INIT ── Barra de carga hasta que el panel esté sincronizado ── */
+(function(){
+  var pct = 0;
+  var barInterval = setInterval(function(){
+    pct = Math.min(pct + Math.random()*15, 90);
+    var bar = document.getElementById('fb-bar');
+    if(bar) bar.style.width = pct + '%';
+  }, 300);
+
+  function startPanel(){
+    clearInterval(barInterval);
+    var bar = document.getElementById('fb-bar');
+    if(bar) bar.style.width = '100%';
+    setTimeout(function(){
+      // Verificar sesión activa y permisos por rol
+      try{
+        var saved = sessionStorage.getItem('itp3_session');
+        if(saved){
+          var s = JSON.parse(saved);
+          var db = getDB();
+          if(s.username === '__master__' || (db.users && db.users[s.username])){
+            CUR = s; window.CUR = CUR;
+            // Mostrar la interfaz solo cuando el panel está completamente sincronizado
+            var scr = document.getElementById('screen-gestionadas');
+            if(scr) scr.classList.add('active');
+            initGestionadas();
+            var el = document.getElementById('fb-loading');
+            if(el){ el.style.opacity = '0'; setTimeout(function(){ el.remove(); }, 350); }
+            return;
+          }
+        }
+      }catch(e){}
+      // Sin sesión válida → volver al login
+      window.location.href = 'index.html';
+    }, 300);
+  }
+
+  _initFirebase();
+
+  var waited = 0;
+  var checkReady = setInterval(function(){
+    waited += 100;
+    if(_fbReady){
+      clearInterval(checkReady);
+      startPanel();
+    } else if(waited >= 10000){
+      clearInterval(checkReady);
+      var st = document.getElementById('fb-sub'); if(st) st.textContent = 'Sin conexión — revisa tu internet';
+      var bar = document.getElementById('fb-bar'); if(bar) bar.style.background = 'rgba(255,107,107,.7)';
+      var btn = document.getElementById('fb-retry'); if(btn) btn.style.display = 'inline-block';
+    }
+  }, 100);
+})();
+</script>
+</body>
+</html>
